@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <title>VOIDCLICK</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <main id="game">
+
+
+    <!-- =========================
+         ÜST SKOR ALANI
+    ========================== -->
+
+    <header class="hud">
+
+
+      <div class="hud-item">
+
+        <span>
+          SCORE
+        </span>
+
+        <strong id="score">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="hud-item center">
+
+        <span>
+          COMBO
+        </span>
+
+        <strong id="combo">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="hud-item right">
+
+        <span>
+          BEST
+        </span>
+
+        <strong id="best-score">
+          0
+        </strong>
+
+      </div>
+
+
+    </header>
+
+
+
+    <!-- =========================
+         OYUN ALANI
+    ========================== -->
+
+    <section id="game-area">
+
+
+      <!-- TOP 5 -->
+
+      <aside id="leaderboard">
+
+        <div class="leaderboard-title">
+          TOP 5
+        </div>
+
+        <ol id="leaderboard-list">
+
+          <li>
+            Loading...
+          </li>
+
+        </ol>
+
+      </aside>
+
+
+
+      <!-- DÜŞEN HALKA -->
+
+      <div id="falling-ring"></div>
+
+
+
+      <!-- HEDEF HALKA -->
+
+      <div id="target-ring"></div>
+
+
+
+      <!-- PERFECT / GREAT / GOOD -->
+
+      <div id="feedback"></div>
+
+
+
+      <!-- =========================
+           KULLANICI ADI
+      ========================== -->
+
+      <div
+        id="username-screen"
+        class="overlay hidden"
+      >
+
+        <h2>
+          CHOOSE YOUR USERNAME
+        </h2>
+
+        <p>
+          This name will appear on the leaderboard.
+        </p>
+
+        <input
+          id="username-input"
+          type="text"
+          minlength="3"
+          maxlength="16"
+          autocomplete="off"
+          placeholder="USERNAME"
+        >
+
+        <p id="username-error"></p>
+
+        <button id="username-button">
+          CONTINUE
+        </button>
+
+      </div>
+
+
+
+      <!-- =========================
+           BAŞLANGIÇ EKRANI
+      ========================== -->
+
+      <div
+        id="start-screen"
+        class="overlay"
+      >
+
+        <h1>
+          VOIDCLICK
+        </h1>
+
+        <p>
+          Hit the ring at the perfect moment.
+        </p>
+
+        <button
+          id="start-button"
+          disabled
+        >
+          START
+        </button>
+
+      </div>
+
+
+
+      <!-- =========================
+           GERİ SAYIM
+      ========================== -->
+
+      <div
+        id="countdown"
+        class="overlay hidden"
+      >
+        3
+      </div>
+
+
+
+      <!-- =========================
+           OYUN SONU
+      ========================== -->
+
+      <div
+        id="game-over-screen"
+        class="overlay hidden"
+      >
+
+        <p class="game-over-title">
+          GAME OVER
+        </p>
+
+
+        <span class="small-label">
+          SCORE
+        </span>
+
+
+        <strong id="final-score">
+          0
+        </strong>
+
+
+        <p>
+
+          BEST:
+
+          <strong id="final-best">
+            0
+          </strong>
+
+        </p>
+
+
+        <button id="play-again-button">
+          PLAY AGAIN
+        </button>
+
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- =========================
+         HIT BUTONU
+    ========================== -->
+
+    <button
+      id="hit-button"
+      disabled
+    >
+      HIT
+    </button>
+
+
+  </main>
+
+
+
+  <!-- Firebase kullandığımız için module -->
+
+  <script
+    type="module"
+    src="script.js"
+  ></script>
+
+
+</body>
+
+</html>

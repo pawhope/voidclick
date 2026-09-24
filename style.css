@@ -1,0 +1,822 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+html,
+body {
+
+  margin: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #050505;
+  color: #ffffff;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  overflow: hidden;
+
+  user-select: none;
+
+}
+
+
+body {
+  min-height: 100dvh;
+}
+
+
+button,
+input {
+  font-family: inherit;
+}
+
+
+button {
+  touch-action: manipulation;
+}
+
+
+
+#game {
+
+  width: 100vw;
+  height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #050505;
+
+}
+
+
+
+/* =========================
+   ÜST SKOR ALANI
+========================= */
+
+.hud {
+
+  height: 80px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  align-items: center;
+
+  padding:
+    0 20px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,0.1);
+
+  flex-shrink: 0;
+
+}
+
+
+.hud-item {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+
+}
+
+
+.hud-item.center {
+  text-align: center;
+}
+
+
+.hud-item.right {
+  text-align: right;
+}
+
+
+.hud-item span {
+
+  font-size: 10px;
+
+  letter-spacing: 2px;
+
+  opacity: 0.45;
+
+}
+
+
+.hud-item strong {
+  font-size: 28px;
+}
+
+
+
+/* =========================
+   OYUN ALANI
+========================= */
+
+#game-area {
+
+  position: relative;
+
+  flex: 1;
+
+  min-height: 0;
+
+  overflow: hidden;
+
+  background:
+
+    radial-gradient(
+
+      circle at center,
+
+      #151515 0%,
+
+      #090909 45%,
+
+      #020202 100%
+
+    );
+
+}
+
+
+
+/* =========================
+   TOP 5
+========================= */
+
+#leaderboard {
+
+  position: absolute;
+
+  top: 15px;
+  left: 15px;
+
+  z-index: 20;
+
+  width: 210px;
+
+  padding:
+    12px 14px;
+
+  background:
+    rgba(0,0,0,0.55);
+
+  border:
+    1px solid
+    rgba(255,255,255,0.1);
+
+  border-radius: 10px;
+
+  backdrop-filter:
+    blur(10px);
+
+  pointer-events: none;
+
+}
+
+
+.leaderboard-title {
+
+  margin-bottom: 8px;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  opacity: 0.5;
+
+}
+
+
+#leaderboard-list {
+
+  margin: 0;
+
+  padding-left: 25px;
+
+  font-size: 12px;
+
+  line-height: 1.8;
+
+}
+
+
+#leaderboard-list li {
+  padding-left: 3px;
+}
+
+
+.leaderboard-player {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+}
+
+
+.leaderboard-name {
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+}
+
+
+.leaderboard-score {
+
+  font-weight: 900;
+
+  flex-shrink: 0;
+
+}
+
+
+
+/* =========================
+   DÜŞEN HALKA
+========================= */
+
+#falling-ring {
+
+  position: absolute;
+
+  top: 0;
+  left: 50%;
+
+  width: 64px;
+  height: 64px;
+
+  border:
+    6px solid #ffffff;
+
+  border-radius: 50%;
+
+  box-shadow:
+
+    0 0 15px
+    rgba(255,255,255,0.35),
+
+    0 0 45px
+    rgba(255,255,255,0.12);
+
+  transform:
+    translate(-50%, -100px);
+
+  opacity: 0;
+
+  z-index: 5;
+
+  pointer-events: none;
+
+}
+
+
+#falling-ring.active {
+  opacity: 1;
+}
+
+
+
+/* =========================
+   HEDEF HALKA
+========================= */
+
+#target-ring {
+
+  position: absolute;
+
+  left: 50%;
+
+  bottom: 80px;
+
+  width: 92px;
+  height: 92px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 50%;
+
+  border:
+
+    5px solid
+    rgba(255,255,255,0.25);
+
+  box-shadow:
+
+    0 0 35px
+    rgba(255,255,255,0.12);
+
+  pointer-events: none;
+
+}
+
+
+#target-ring::after {
+
+  content: "";
+
+  position: absolute;
+
+  inset: 14px;
+
+  border-radius: 50%;
+
+  border:
+
+    2px solid
+    rgba(255,255,255,0.18);
+
+}
+
+
+
+/* =========================
+   PERFECT / GREAT / GOOD
+========================= */
+
+#feedback {
+
+  position: absolute;
+
+  top: 42%;
+  left: 50%;
+
+  transform:
+
+    translate(-50%,-50%)
+    scale(0.5);
+
+  font-size:
+
+    clamp(
+      36px,
+      10vw,
+      72px
+    );
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  z-index: 10;
+
+}
+
+
+#feedback.show {
+
+  animation:
+
+    feedbackAnimation
+    0.35s ease;
+
+}
+
+
+@keyframes feedbackAnimation {
+
+  0% {
+
+    opacity: 0;
+
+    transform:
+
+      translate(-50%,-50%)
+      scale(0.5);
+
+  }
+
+
+  40% {
+
+    opacity: 1;
+
+    transform:
+
+      translate(-50%,-50%)
+      scale(1.15);
+
+  }
+
+
+  100% {
+
+    opacity: 0;
+
+    transform:
+
+      translate(-50%,-50%)
+      scale(1);
+
+  }
+
+}
+
+
+
+/* =========================
+   HIT
+========================= */
+
+#hit-button {
+
+  height: 100px;
+
+  border: 0;
+
+  background:
+    #ffffff;
+
+  color:
+    #050505;
+
+  font-size:
+    34px;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    5px;
+
+  cursor:
+    pointer;
+
+  flex-shrink: 0;
+
+}
+
+
+#hit-button:active {
+  transform: scale(0.98);
+}
+
+
+#hit-button:disabled {
+
+  opacity: 0.2;
+
+  cursor: default;
+
+}
+
+
+
+/* =========================
+   OVERLAY
+========================= */
+
+.overlay {
+
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 30;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  text-align: center;
+
+  padding: 30px;
+
+  background:
+    rgba(5,5,5,0.96);
+
+}
+
+
+.overlay h1 {
+
+  margin: 0;
+
+  font-size:
+
+    clamp(
+      52px,
+      14vw,
+      110px
+    );
+
+  letter-spacing:
+    -4px;
+
+}
+
+
+.overlay h2 {
+
+  margin:
+    0 0 10px;
+
+  font-size:
+    28px;
+
+}
+
+
+.overlay p {
+
+  max-width:
+    420px;
+
+  opacity:
+    0.6;
+
+  font-size:
+    16px;
+
+}
+
+
+.overlay button {
+
+  margin-top:
+    20px;
+
+  border:
+    0;
+
+  border-radius:
+    50px;
+
+  padding:
+    15px 32px;
+
+  background:
+    #ffffff;
+
+  color:
+    #050505;
+
+  font-weight:
+    900;
+
+  cursor:
+    pointer;
+
+}
+
+
+.overlay button:disabled {
+
+  opacity:
+    0.35;
+
+  cursor:
+    default;
+
+}
+
+
+
+/* =========================
+   USERNAME
+========================= */
+
+#username-screen {
+  z-index: 50;
+}
+
+
+#username-input {
+
+  width:
+    min(320px,90%);
+
+  margin-top:
+    20px;
+
+  padding:
+    15px 18px;
+
+  border:
+
+    1px solid
+    rgba(255,255,255,0.25);
+
+  border-radius:
+    12px;
+
+  background:
+    #111111;
+
+  color:
+    #ffffff;
+
+  font-size:
+    18px;
+
+  text-align:
+    center;
+
+  outline:
+    none;
+
+}
+
+
+#username-input:focus {
+
+  border-color:
+    rgba(255,255,255,0.7);
+
+}
+
+
+#username-error {
+
+  min-height:
+    20px;
+
+  margin:
+    10px 0 0;
+
+  font-size:
+    13px;
+
+  color:
+    #ff6b6b;
+
+  opacity:
+    1;
+
+}
+
+
+
+/* =========================
+   GERİ SAYIM
+========================= */
+
+#countdown {
+
+  font-size:
+
+    clamp(
+      110px,
+      35vw,
+      260px
+    );
+
+  font-weight:
+    900;
+
+}
+
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+.game-over-title {
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    6px;
+
+}
+
+
+.small-label {
+
+  margin-top:
+    15px;
+
+  font-size:
+    11px;
+
+  letter-spacing:
+    3px;
+
+  opacity:
+    0.45;
+
+}
+
+
+#final-score {
+
+  font-size:
+
+    clamp(
+      90px,
+      28vw,
+      180px
+    );
+
+  line-height:
+    1;
+
+}
+
+
+
+/* =========================
+   GİZLE
+========================= */
+
+.hidden {
+  display: none !important;
+}
+
+
+
+/* =========================
+   MOBİL
+========================= */
+
+@media (max-width: 600px) {
+
+  .hud {
+
+    height:
+      70px;
+
+    padding:
+      0 14px;
+
+  }
+
+
+  .hud-item strong {
+    font-size: 23px;
+  }
+
+
+  #hit-button {
+    height: 92px;
+  }
+
+
+  #target-ring {
+    bottom: 60px;
+  }
+
+
+  #leaderboard {
+
+    top: 10px;
+    left: 10px;
+
+    width: 165px;
+
+    padding:
+      9px 10px;
+
+  }
+
+
+  #leaderboard-list {
+
+    font-size:
+      10px;
+
+    padding-left:
+      20px;
+
+  }
+
+
+  .leaderboard-title {
+    font-size: 9px;
+  }
+
+}
