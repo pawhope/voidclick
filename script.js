@@ -26,7 +26,8 @@ import {
   query,
   orderBy,
   limit,
-  getDocs
+  getDocs,
+  runTransaction
 } from
 "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -340,6 +341,52 @@ function wait(milliseconds) {
 
 
 // ======================================
+// USERNAME NORMALIZE
+// ======================================
+
+function normalizeUsername(
+  username
+) {
+
+  return username
+    .normalize("NFKC")
+    .toLowerCase();
+
+}
+
+
+
+// ======================================
+// USERNAME GEÇERLİ Mİ?
+// ======================================
+
+function isValidUsername(
+  username
+) {
+
+  /*
+    Harf
+    Rakam
+    Nokta
+    Alt çizgi
+    Tire
+
+    kullanılabilir.
+  */
+
+  const usernamePattern =
+    /^[\p{L}\p{N}._-]+$/u;
+
+
+  return usernamePattern.test(
+    username
+  );
+
+}
+
+
+
+// ======================================
 // FIREBASE AUTH BEKLE
 // ======================================
 
@@ -355,13 +402,115 @@ function getInitialAuthUser() {
 
             unsubscribe();
 
-            resolve(user);
+            resolve(
+              user
+            );
 
           }
         );
 
     }
   );
+
+}
+
+
+
+// ======================================
+// ESKİ KULLANICININ ADINI REZERVE ET
+// ======================================
+
+async function claimExistingUsername() {
+
+  if (
+    !currentUser ||
+    !currentUsername
+  ) {
+
+    return;
+
+  }
+
+
+  const usernameKey =
+    normalizeUsername(
+      currentUsername
+    );
+
+
+  const usernameReference =
+    doc(
+      db,
+      "usernames",
+      usernameKey
+    );
+
+
+  try {
+
+    await runTransaction(
+      db,
+      async transaction => {
+
+        const usernameSnapshot =
+          await transaction.get(
+            usernameReference
+          );
+
+
+        if (
+          !usernameSnapshot.exists()
+        ) {
+
+          transaction.set(
+            usernameReference,
+            {
+
+              uid:
+                currentUser.uid,
+
+              username:
+                currentUsername
+
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        const usernameData =
+          usernameSnapshot.data();
+
+
+        if (
+          usernameData.uid !==
+          currentUser.uid
+        ) {
+
+          console.warn(
+            "USERNAME ALREADY CLAIMED BY ANOTHER USER:",
+            currentUsername
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  catch (error) {
+
+    console.error(
+      "OLD USERNAME CLAIM ERROR:",
+      error
+    );
+
+  }
 
 }
 
@@ -391,12 +540,15 @@ async function initializePlayer() {
       await getInitialAuthUser();
 
 
-    if (!user) {
+    if (
+      !user
+    ) {
 
       const credential =
         await signInAnonymously(
           auth
         );
+
 
       user =
         credential.user;
@@ -421,6 +573,10 @@ async function initializePlayer() {
         playerReference
       );
 
+
+    // ==================================
+    // ESKİ KULLANICI
+    // ==================================
 
     if (
       playerSnapshot.exists()
@@ -456,6 +612,11 @@ async function initializePlayer() {
         bestScore;
 
 
+      // Önceki sistemden gelen kullanıcıların
+      // isimlerini usernames koleksiyonuna kaydet.
+      await claimExistingUsername();
+
+
       hide(
         usernameScreen
       );
@@ -478,6 +639,11 @@ async function initializePlayer() {
 
     }
 
+
+
+    // ==================================
+    // YENİ KULLANICI
+    // ==================================
 
     show(
       usernameScreen
@@ -542,6 +708,10 @@ async function saveUsername() {
     "";
 
 
+  // ==================================
+  // UZUNLUK KONTROLÜ
+  // ==================================
+
   if (
     username.length < 3
   ) {
@@ -566,6 +736,26 @@ async function saveUsername() {
   }
 
 
+
+  // ==================================
+  // KARAKTER KONTROLÜ
+  // ==================================
+
+  if (
+    !isValidUsername(
+      username
+    )
+  ) {
+
+    usernameError.textContent =
+      "Only letters, numbers, . _ - are allowed.";
+
+    return;
+
+  }
+
+
+
   if (
     !currentUser
   ) {
@@ -578,11 +768,27 @@ async function saveUsername() {
   }
 
 
+
   usernameButton.disabled =
     true;
 
 
+
   try {
+
+    const usernameKey =
+      normalizeUsername(
+        username
+      );
+
+
+    const usernameReference =
+      doc(
+        db,
+        "usernames",
+        usernameKey
+      );
+
 
     const playerReference =
       doc(
@@ -592,21 +798,85 @@ async function saveUsername() {
       );
 
 
-    await setDoc(
 
-      playerReference,
+    // ==================================
+    // ATOMIC USERNAME RESERVATION
+    // ==================================
 
-      {
+    await runTransaction(
+      db,
+      async transaction => {
 
-        username:
-          username,
+        // Bütün okumalar önce yapılır
+        const usernameSnapshot =
+          await transaction.get(
+            usernameReference
+          );
 
-        bestScore:
-          0
+
+        // İsim daha önce alınmış
+        if (
+          usernameSnapshot.exists()
+        ) {
+
+          const usernameData =
+            usernameSnapshot.data();
+
+
+          if (
+            usernameData.uid !==
+            currentUser.uid
+          ) {
+
+            throw new Error(
+              "USERNAME_TAKEN"
+            );
+
+          }
+
+        }
+
+
+
+        // İsim boşsa kullanıcı adına kilitle
+        if (
+          !usernameSnapshot.exists()
+        ) {
+
+          transaction.set(
+            usernameReference,
+            {
+
+              uid:
+                currentUser.uid,
+
+              username:
+                username
+
+            }
+          );
+
+        }
+
+
+
+        // Player kaydı oluştur
+        transaction.set(
+          playerReference,
+          {
+
+            username:
+              username,
+
+            bestScore:
+              0
+
+          }
+        );
 
       }
-
     );
+
 
 
     currentUsername =
@@ -661,8 +931,22 @@ async function saveUsername() {
     );
 
 
-    usernameError.textContent =
-      "Username could not be saved.";
+    if (
+      error.message ===
+      "USERNAME_TAKEN"
+    ) {
+
+      usernameError.textContent =
+        "This username is already taken.";
+
+    }
+
+    else {
+
+      usernameError.textContent =
+        "Username could not be saved.";
+
+    }
 
 
     usernameButton.disabled =
@@ -1618,7 +1902,7 @@ document.addEventListener(
 
 
 
-// Sağ tık kapalı
+// SAĞ TIK KAPALI
 
 document.addEventListener(
 
@@ -1634,7 +1918,7 @@ document.addEventListener(
 
 
 
-// Çift dokunma zoom kapalı
+// ÇİFT DOKUNMA ZOOM KAPALI
 
 document.addEventListener(
 
